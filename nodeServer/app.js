@@ -50,7 +50,31 @@ app.get("/", (req, res) => {
 })
 
 app.get("/admin", (req, res) => {
-    res.send("Admin page")
+    res.sendFile(path.join(__dirname, "/html/admin.html"))
+})
+
+app.get('/spotify/login', (req, res) => {
+    const loginPage = spotifyAPI.createAuthorizeURL(scopes)
+    res.redirect(`${loginPage}`)
+    console.log("Login initiated")
+})
+
+app.get("/spotify/login/success", async (req, res) => {
+    const { code } = req.query
+
+    try {
+        const data = await spotifyAPI.authorizationCodeGrant(code)
+        const { access_token, refresh_token } = data.body
+        spotifyAPI.setAccessToken(access_token)
+        spotifyAPI.setRefreshToken(refresh_token)
+
+        // res.send(`Logged in! ${access_token} ${refresh_token}`)
+        res.redirect("/admin")
+        console.log("Logged in")
+    } catch (err) {
+        res.send("Oops, something went wrong")
+        console.log("Login failed")
+    }
 })
 
 
