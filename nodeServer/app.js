@@ -69,12 +69,18 @@ app.get("/spotify/login/success", async (req, res) => {
         spotifyAPI.setRefreshToken(refresh_token)
 
         // res.send(`Logged in! ${access_token} ${refresh_token}`)
-        res.redirect("/admin")
+        res.redirect("/admin?spotifyLogin=success")
         console.log("Logged in")
     } catch (err) {
-        res.send("Oops, something went wrong")
+        res.redirect("/admin?spotifyLogin=failed")
         console.log("Login failed")
     }
+})
+
+app.get("/spotify/search", async (req, res) => {
+    const results = await spotifyAPI.search(`${req.query.songName} ${req.query.artist}`, ["track"], { limit:5, offset:0})
+    res.send(results)
+    console.log(req.query.songName, req.query.artist)
 })
 
 
