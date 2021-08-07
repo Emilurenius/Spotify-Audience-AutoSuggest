@@ -5,6 +5,7 @@ function spotifySearch() {
     const resultsContainer = document.getElementById("resultsContainer")
 
     search.addEventListener("click", (event) => {
+        resultsContainer.innerHTML = ""
         results = getJSON(`${url}/spotify/search?songName=${songName.value}&artist=${artist.value}`).body.tracks.items
         console.log(results)
 
