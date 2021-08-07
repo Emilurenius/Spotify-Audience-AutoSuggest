@@ -16,7 +16,17 @@ function spotifySearch() {
             songLink.href = `${url}/spotify/addsong?uri=${results[result].uri}`
             songLink.innerHTML = `${results[result].name} by ${results[result].artists[0].name}`
 
-            resultsContainer.appendChild(songLink)
+            songImage = document.createElement("img")
+            songImage.src = results[result].album.images[2].url
+
+            linkContainer = document.createElement("div")
+            linkContainer.classList.add("maxWidthDiv")
+            linkContainer.style = "margin-left: 20%"
+
+            linkContainer.appendChild(songImage)
+            linkContainer.appendChild(songLink)
+
+            resultsContainer.appendChild(linkContainer)
         }
     })
 }spotifySearch()

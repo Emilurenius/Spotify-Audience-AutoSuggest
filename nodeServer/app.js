@@ -7,7 +7,7 @@ const fs = require("fs")
 const cors = require("cors")
 
 const SpotifyWebAPI = require('spotify-web-api-node');
-scopes = ["user-read-playback-state"]
+scopes = ["user-read-playback-state", "user-modify-playback-state"]
 
 function loadJSON(filename) {
     const rawdata = fs.readFileSync(path.join(__dirname, filename))
@@ -81,6 +81,15 @@ app.get("/spotify/search", async (req, res) => {
     const results = await spotifyAPI.search(`${req.query.songName} ${req.query.artist}`, ["track"], { limit:5, offset:0})
     res.send(results)
     console.log(req.query.songName, req.query.artist)
+})
+
+app.get("/spotify/addsong", async (req, res) => {
+    const playbackData = await spotifyAPI.getMyCurrentPlaybackState()
+    deviceID = playbackData.body.device.id
+
+    const response = await spotifyAPI.addToQueue(req.query.uri)
+
+    res.send("Song added successfully")
 })
 
 
