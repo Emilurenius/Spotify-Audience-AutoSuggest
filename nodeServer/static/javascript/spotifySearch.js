@@ -15,17 +15,23 @@ function spotifySearch() {
             songLink = document.createElement("a")
             songLink.classList.add("centeredText")
             songLink.href = `${url}/spotify/addsong?uri=${results[result].uri}`
-            songLink.innerHTML = `${results[result].name} by ${results[result].artists[0].name}`
+            songLink.innerHTML = `${results[result].name}<br>${results[result].artists[0].name}`
+
+            artistNameText = document.createElement("p")
+            artistNameText.classList.add("centeredText")
+            artistNameText.innerHTML = `${results[result].artists[0].name}`
 
             songImage = document.createElement("img")
             songImage.src = results[result].album.images[2].url
+            songImage.style = "vertical-align: middle; margin: 10px;"
 
             linkContainer = document.createElement("div")
             linkContainer.classList.add("maxWidthDiv")
-            linkContainer.style = "margin-left: 20%"
+            linkContainer.style = "margin-left: 10%"
 
             linkContainer.appendChild(songImage)
             linkContainer.appendChild(songLink)
+            //linkContainer.appendChild(artistNameText)
 
             resultsContainer.appendChild(linkContainer)
         }

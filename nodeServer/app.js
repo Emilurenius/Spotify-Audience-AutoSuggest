@@ -2,6 +2,8 @@
 const express = require("express")
 const app = express()
 const bodyParser = require("body-parser")
+const bcrypt = require("bcrypt")
+const cookieParser = require("cookie-parser")
 const path = require("path")
 const fs = require("fs")
 const cors = require("cors")
@@ -39,7 +41,7 @@ console.log(`${port} registered as server port`)
 //Here we are configuring express to use body-parser as middle-ware.
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
-
+app.use(cookieParser()) // Middleware for handling cookies
 app.use(cors()) // Making sure the browser can request more data after it is loaded on the client computer.
 
 
