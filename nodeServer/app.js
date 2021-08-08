@@ -25,6 +25,19 @@ function saveJSON(json, filename) {
     })
 }
 
+function refreshAccessToken() {
+    spotifyAPI.refreshAccessToken().then(
+        (data) => { 
+            console.log("Access token refreshed")
+
+            spotifyAPI.setAccessToken(data.body["access_token"])
+        },
+        (err) => {
+            console.log("Could not refresh access token", err)
+        }
+    )
+}
+
 const clientData = loadJSON("/spotifyClientData.json")
 const spotifyAPI = new SpotifyWebAPI({
     clientId: clientData.clientID,
@@ -80,19 +93,34 @@ app.get("/spotify/login/success", async (req, res) => {
 })
 
 app.get("/spotify/search", async (req, res) => {
-    const results = await spotifyAPI.search(`${req.query.songName} ${req.query.artist}`, ["track"], { limit:5, offset:0})
-    res.send(results)
-    console.log(req.query.songName, req.query.artist)
+    try {
+        const results = await spotifyAPI.search(`${req.query.songName} ${req.query.artist}`, ["track"], { limit:5, offset:0})
+        res.send(results)
+        console.log(req.query.songName, req.query.artist)
+    } catch {
+        refreshAccessToken()
+        res.redirect(`/spotify/search?songName=${req.query.songName}&artist=${req.query.artist}`)
+    }
 })
 
 app.get("/spotify/addsong", async (req, res) => {
-    const playbackData = await spotifyAPI.getMyCurrentPlaybackState()
-    deviceID = playbackData.body.device.id
+    try {
+        const playbackData = await spotifyAPI.getMyCurrentPlaybackState()
+        deviceID = playbackData.body.device.id
 
-    const response = await spotifyAPI.addToQueue(req.query.uri)
+        const response = await spotifyAPI.addToQueue(req.query.uri)
 
-    res.send("Song added successfully")
+        res.send("Song added successfully")
+    } catch (err) {
+        refreshAccessToken()
+        res.redirect(`/spotify/addsong?uri=${req.query.uri}`)
+    }
 })
+
+
+// setInterval( async () => {
+//     refreshAccessToken()
+// }, 5000)
 
 
 app.listen(port, () => console.log(`Listening on ${port}`))
