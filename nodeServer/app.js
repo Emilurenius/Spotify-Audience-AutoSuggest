@@ -66,21 +66,52 @@ app.use(cors()) // Making sure the browser can request more data after it is loa
 
 app.use("/static", express.static("static"))
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "/html/index.html"))
+app.get("/", (req, res) => { // This address handles connecting clients to the server, and gives a visual interface
+    connectCode = req.cookies.connectCode
+    console.log(connectCode)
+
+    if (connectCode) {
+        codeData = loadJSON("/json/connectCode.json")
+        console.log(connectCode == codeData.code)
+        if (connectCode == codeData.code && codeData.expires < Date.now()+ 24 * 60 * 60 * 1000) {
+            res.sendFile(path.join(__dirname, "/html/index.html"))
+        }
+        else {
+            res.sendFile(path.join(__dirname, "/html/clientConnect.html"))
+        }
+    }
+    else {
+        console.log("No code data")
+        res.sendFile(path.join(__dirname, "/html/clientConnect.html"))
+    }
 })
 
-app.get("/admin", (req, res) => {
+app.get("/admin", (req, res) => { // Admin control panel
     res.sendFile(path.join(__dirname, "/html/admin.html"))
 })
 
-app.get('/spotify/login', (req, res) => {
+app.get("/admin/generateCode", (req, res) => { // Generate new code for clients to connect with
+    const codeData = loadJSON("/json/connectCode.json")
+    timeNow = Date.now()
+
+    const newCode = randInt(1111, 9999)
+    console.log(`Connect code generated: ${newCode}`)
+
+    codeData.code = newCode
+    codeData.expires = timeNow + 24 * 60 * 60 * 1000
+    console.log(`Current time: ${timeNow} __ Expires: ${codeData.expires}`)
+
+    res.send(codeData)
+    saveJSON(codeData, "/json/connectCode.json")
+})
+
+app.get('/spotify/login', (req, res) => { // Communicates with spotify to log in the server
     const loginPage = spotifyAPI.createAuthorizeURL(scopes)
     res.redirect(`${loginPage}`)
     console.log("Login initiated")
 })
 
-app.get("/spotify/login/success", async (req, res) => {
+app.get("/spotify/login/success", async (req, res) => { // Spotify redirects here after a login, and the server recieves a token
     const { code } = req.query
 
     try {
@@ -98,7 +129,7 @@ app.get("/spotify/login/success", async (req, res) => {
     }
 })
 
-app.get("/spotify/search", async (req, res) => {
+app.get("/spotify/search", async (req, res) => { // Searches after a song on spotify based on client input
     try {
         const results = await spotifyAPI.search(`${req.query.songName} ${req.query.artist}`, ["track"], { limit:5, offset:0})
         res.send(results)
@@ -109,7 +140,7 @@ app.get("/spotify/search", async (req, res) => {
     }
 })
 
-app.get("/spotify/addsong", async (req, res) => {
+app.get("/spotify/addsong", async (req, res) => { // Adds song to the end of the currently active playback based on client input
     try {
         const playbackData = await spotifyAPI.getMyCurrentPlaybackState()
         deviceID = playbackData.body.device.id
@@ -121,21 +152,6 @@ app.get("/spotify/addsong", async (req, res) => {
         refreshAccessToken()
         res.redirect(`/spotify/addsong?uri=${req.query.uri}`)
     }
-})
-
-app.get("/admin/generateCode", (req, res) => {
-    const codeData = loadJSON("/json/connectCode.json")
-    timeNow = Date.now()
-
-    const newCode = randInt(1111, 9999)
-    console.log(`Connect code generated: ${newCode}`)
-
-    codeData.code = newCode
-    codeData.expires = timeNow + 24 * 60 * 60 * 1000
-    console.log(`Current time: ${timeNow} __ Expires: ${codeData.expires}`)
-
-    res.send(codeData)
-    saveJSON(codeData, "/json/connectCode.json")
 })
 
 
