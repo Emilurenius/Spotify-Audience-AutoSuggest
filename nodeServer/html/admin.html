@@ -17,10 +17,20 @@
     <p class="header centeredText">Admin page</p>
     <div class="maxWidthDiv centeredDiv">
         <a href="/spotify/login" class="button">Spotify Login</a>
-        <!-- <input type="button" class="button" value="Spotify Login"> -->
     </div>
 
+    <div class="maxWidthDiv centeredDiv">
+        <input type=button class="button" value="Generate connection code" id="generateCode">
+    </div>
+
+    <div class="maxWidthDiv centeredDiv" id="connectionCode">
+
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="/static/javascript/functions.js"></script>
     <script src="/static/javascript/getQueries.js"></script>
     <script src="/static/javascript/adminLogin.js"></script>
+    <script src="/static/javascript/generateConnectCode.js"></script>
 </body>
 </html>

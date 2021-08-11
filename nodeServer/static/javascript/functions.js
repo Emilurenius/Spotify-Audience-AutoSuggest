@@ -24,3 +24,7 @@ function postJSON(url, JSON) {
     })
     return j
 }
+
+function timeStampToDate(date) {
+    return `${date.getHours()}:${date.getMinutes()} ${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`
+}

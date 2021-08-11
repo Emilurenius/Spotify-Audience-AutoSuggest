@@ -38,6 +38,12 @@ function refreshAccessToken() {
     )
 }
 
+function randInt(min, max) {  
+    return Math.floor(
+      Math.random() * (max - min) + min
+    )
+  }
+
 const clientData = loadJSON("/spotifyClientData.json")
 const spotifyAPI = new SpotifyWebAPI({
     clientId: clientData.clientID,
@@ -115,6 +121,21 @@ app.get("/spotify/addsong", async (req, res) => {
         refreshAccessToken()
         res.redirect(`/spotify/addsong?uri=${req.query.uri}`)
     }
+})
+
+app.get("/admin/generateCode", (req, res) => {
+    const codeData = loadJSON("/json/connectCode.json")
+    timeNow = Date.now()
+
+    const newCode = randInt(1111, 9999)
+    console.log(`Connect code generated: ${newCode}`)
+
+    codeData.code = newCode
+    codeData.expires = timeNow + 24 * 60 * 60 * 1000
+    console.log(`Current time: ${timeNow} __ Expires: ${codeData.expires}`)
+
+    res.send(codeData)
+    saveJSON(codeData, "/json/connectCode.json")
 })
 
 
