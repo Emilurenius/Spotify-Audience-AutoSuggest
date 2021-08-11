@@ -6,7 +6,14 @@ function spotifySearch() {
 
     search.addEventListener("click", (event) => {
         resultsContainer.innerHTML = ""
-        results = getJSON(`${url}/spotify/search?songName=${songName.value}&artist=${artist.value}`).body.tracks.items
+        const response = getJSON(`${url}/spotify/search?songName=${songName.value}&artist=${artist.value}`)
+        console.log(response)
+
+        if (response == false) {
+            window.location.reload()
+        }
+
+        const results = response.body.tracks.items
         console.log(results)
 
         for (let result in results) {

@@ -67,7 +67,7 @@ app.use(cors()) // Making sure the browser can request more data after it is loa
 app.use("/static", express.static("static"))
 
 app.get("/", (req, res) => { // This address handles connecting clients to the server, and gives a visual interface
-    connectCode = req.cookies.connectCode
+    const connectCode = req.cookies.connectCode
     console.log(connectCode)
 
     if (connectCode) {
@@ -130,27 +130,59 @@ app.get("/spotify/login/success", async (req, res) => { // Spotify redirects her
 })
 
 app.get("/spotify/search", async (req, res) => { // Searches after a song on spotify based on client input
-    try {
-        const results = await spotifyAPI.search(`${req.query.songName} ${req.query.artist}`, ["track"], { limit:5, offset:0})
-        res.send(results)
-        console.log(req.query.songName, req.query.artist)
-    } catch {
-        refreshAccessToken()
-        res.redirect(`/spotify/search?songName=${req.query.songName}&artist=${req.query.artist}`)
+    const connectCode = req.cookies.connectCode
+    console.log(connectCode)
+
+    if (connectCode) {
+        codeData = loadJSON("/json/connectCode.json")
+        console.log(connectCode == codeData.code)
+        if (connectCode == codeData.code && codeData.expires < Date.now()+ 24 * 60 * 60 * 1000) {
+            try {
+                const results = await spotifyAPI.search(`${req.query.songName} ${req.query.artist}`, ["track"], { limit:5, offset:0})
+                res.send(results)
+                console.log(req.query.songName, req.query.artist)
+            } catch {
+                refreshAccessToken()
+                res.redirect(`/spotify/search?songName=${req.query.songName}&artist=${req.query.artist}`)
+            }
+        }
+        else{
+            console.log("Not logged in 1")
+            res.send(false)
+        }
+    }
+    else{
+        console.log("Not logged in 2")
+        res.send("Not logged in")
     }
 })
 
 app.get("/spotify/addsong", async (req, res) => { // Adds song to the end of the currently active playback based on client input
-    try {
-        const playbackData = await spotifyAPI.getMyCurrentPlaybackState()
-        deviceID = playbackData.body.device.id
+    const connectCode = req.cookies.connectCode
+    console.log(connectCode)
 
-        const response = await spotifyAPI.addToQueue(req.query.uri)
-
-        res.send("Song added successfully")
-    } catch (err) {
-        refreshAccessToken()
-        res.redirect(`/spotify/addsong?uri=${req.query.uri}`)
+    if (connectCode) {
+        codeData = loadJSON("/json/connectCode.json")
+        console.log(connectCode == codeData.code)
+        if (connectCode == codeData.code && codeData.expires < Date.now()+ 24 * 60 * 60 * 1000) {
+            try {
+                const playbackData = await spotifyAPI.getMyCurrentPlaybackState()
+                deviceID = playbackData.body.device.id
+        
+                const response = await spotifyAPI.addToQueue(req.query.uri)
+        
+                res.send("Song added successfully")
+            } catch (err) {
+                refreshAccessToken()
+                res.redirect(`/spotify/addsong?uri=${req.query.uri}`)
+            }
+        }
+        else{
+            res.redirect("/")
+        }
+    }
+    else{
+        res.redirect("/")
     }
 })
 
