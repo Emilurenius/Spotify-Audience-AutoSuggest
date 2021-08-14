@@ -2,11 +2,11 @@
 const express = require("express")
 const app = express()
 const bodyParser = require("body-parser")
-const bcrypt = require("bcrypt")
 const cookieParser = require("cookie-parser")
 const path = require("path")
 const fs = require("fs")
 const cors = require("cors")
+const bcrypt = require("bcrypt")
 
 const SpotifyWebAPI = require('spotify-web-api-node');
 scopes = ["user-read-playback-state", "user-modify-playback-state"]
@@ -131,11 +131,9 @@ app.get("/spotify/login/success", async (req, res) => { // Spotify redirects her
 
 app.get("/spotify/search", async (req, res) => { // Searches after a song on spotify based on client input
     const connectCode = req.cookies.connectCode
-    console.log(connectCode)
 
     if (connectCode) {
         codeData = loadJSON("/json/connectCode.json")
-        console.log(connectCode == codeData.code)
         if (connectCode == codeData.code && codeData.expires < Date.now()+ 24 * 60 * 60 * 1000) {
             try {
                 const results = await spotifyAPI.search(`${req.query.songName} ${req.query.artist}`, ["track"], { limit:5, offset:0})
@@ -185,11 +183,6 @@ app.get("/spotify/addsong", async (req, res) => { // Adds song to the end of the
         res.redirect("/")
     }
 })
-
-
-// setInterval( async () => {
-//     refreshAccessToken()
-// }, 5000)
 
 
 app.listen(port, () => console.log(`Listening on ${port}`))
