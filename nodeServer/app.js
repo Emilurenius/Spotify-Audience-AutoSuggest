@@ -87,28 +87,93 @@ app.get("/", (req, res) => { // This address handles connecting clients to the s
 })
 
 app.get("/admin", (req, res) => { // Admin control panel
-    res.sendFile(path.join(__dirname, "/html/admin.html"))
+
+    const pass = req.cookies.adminPass
+    let passCorrect = false
+    console.log(pass)
+    const hashedPass = loadJSON("/adminPass/pass.json").pass
+
+    if (pass) {
+        bcrypt.compare(pass, hashedPass, (err, result) => {
+            if (err) {
+                res.send("Oops! Something went wrong!<br>Please contact system administrator!")
+                throw new Error(err)
+            }else {
+                passCorrect = result
+            }
+            if (passCorrect) {
+                res.sendFile(path.join(__dirname, "/html/admin.html"))
+                console.log("admin logged in successfully")
+            } else {
+                res.sendFile(path.join(__dirname, "/html/adminLogin.html"))
+                console.log("Login initiated")
+            }
+        })
+    }
 })
 
 app.get("/admin/generateCode", (req, res) => { // Generate new code for clients to connect with
-    const codeData = loadJSON("/json/connectCode.json")
-    timeNow = Date.now()
 
-    const newCode = randInt(1111, 9999)
-    console.log(`Connect code generated: ${newCode}`)
+    const pass = req.cookies.adminPass
+    let passCorrect = false
+    console.log(pass)
+    const hashedPass = loadJSON("/adminPass/pass.json").pass
 
-    codeData.code = newCode
-    codeData.expires = timeNow + 24 * 60 * 60 * 1000
-    console.log(`Current time: ${timeNow} __ Expires: ${codeData.expires}`)
+    if (pass) {
+        bcrypt.compare(pass, hashedPass, (err, result) => {
+            if (err) {
+                res.send("Oops! Something went wrong!<br>Please contact system administrator!")
+                throw new Error(err)
+            }else {
+                passCorrect = result
+            }
+            if (passCorrect) {
+                const codeData = loadJSON("/json/connectCode.json")
+                timeNow = Date.now()
 
-    res.send(codeData)
-    saveJSON(codeData, "/json/connectCode.json")
+                const newCode = randInt(1111, 9999)
+                console.log(`Connect code generated: ${newCode}`)
+
+                codeData.code = newCode
+                codeData.expires = timeNow + 24 * 60 * 60 * 1000
+                console.log(`Current time: ${timeNow} __ Expires: ${codeData.expires}`)
+
+                res.send(codeData)
+                saveJSON(codeData, "/json/connectCode.json")
+            } else {
+                console.log("Unauthorized admin activity detected! Redirecting to login")
+                res.send({"unauthorized": true})
+            }
+        })
+    }
 })
 
 app.get('/spotify/login', (req, res) => { // Communicates with spotify to log in the server
-    const loginPage = spotifyAPI.createAuthorizeURL(scopes)
-    res.redirect(`${loginPage}`)
-    console.log("Login initiated")
+    const pass = req.cookies.adminPass
+    let passCorrect = false
+    console.log(pass)
+    const hashedPass = loadJSON("/adminPass/pass.json").pass
+
+    if (pass) {
+        bcrypt.compare(pass, hashedPass, (err, result) => {
+            if (err) {
+                res.send("Oops! Something went wrong!<br>Please contact system administrator!")
+                throw new Error(err)
+            }else {
+                passCorrect = result
+            }
+
+            if (passCorrect) {
+                const loginPage = spotifyAPI.createAuthorizeURL(scopes)
+                res.redirect(`${loginPage}`)
+                console.log("Login initiated")
+            }
+            else {
+                console.log("Unauthorized admin activity detected! Redirecting to login")
+                res.redirect("/admin")
+            }
+        })
+    }
 })
 
 app.get("/spotify/login/success", async (req, res) => { // Spotify redirects here after a login, and the server recieves a token
@@ -122,7 +187,7 @@ app.get("/spotify/login/success", async (req, res) => { // Spotify redirects her
 
         // res.send(`Logged in! ${access_token} ${refresh_token}`)
         res.redirect("/admin?spotifyLogin=success")
-        console.log("Logged in")
+        console.log(`Logged in!\n${access_token}\n${refresh_token}`)
     } catch (err) {
         res.redirect("/admin?spotifyLogin=failed")
         console.log("Login failed")

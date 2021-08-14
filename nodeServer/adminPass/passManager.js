@@ -20,6 +20,12 @@ const mode = process.argv[2]
 
 if (mode == "resetPass") {
     const unHashed = process.argv[3]
+
+    if (unHashed == undefined) {
+        console.log("Error: No password provided")
+        process.exit(1)
+    }
+
     bcrypt.hash(unHashed, 10).then((hash) => {
         const hashedPass = hash
         console.log(`\nPassword hashed:\n\nOriginal : ${unHashed}\nHashed   : ${hashedPass}`)
@@ -30,6 +36,12 @@ if (mode == "resetPass") {
 }
 else if (mode == "checkPass") {
     const unHashed = process.argv[3]
+
+    if (unHashed == undefined) {
+        console.log("Error: No password provided")
+        process.exit(1)
+    }
+
     const hashed = loadJSON("/pass.json").pass
     bcrypt.compare(unHashed, hashed, (err, result) => {
         if (err) {
