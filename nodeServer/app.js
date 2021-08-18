@@ -152,6 +152,31 @@ app.get("/admin/generateCode", (req, res) => { // Generate new code for clients 
     }
 })
 
+app.get("/admin/getCode", (req, res) => {
+    const pass = req.cookies.adminPass
+    let passCorrect = false
+    console.log(pass)
+    const hashedPass = loadJSON("/adminPass/pass.json").pass
+
+    if (pass) {
+        bcrypt.compare(pass, hashedPass, (err, result) => {
+            if (err) {
+                res.send("Oops! Something went wrong!<br>Please contact system administrator!")
+                throw new Error(err)
+            }else {
+                passCorrect = result
+            }
+            if (passCorrect) {
+                const codeData = loadJSON("/json/connectCode.json")
+                res.send(codeData)
+            } else {
+                console.log("Unauthorized admin activity detected! Redirecting to login")
+                res.send({"unauthorized": true})
+            }
+        })
+    }
+})
+
 app.get('/spotify/login', (req, res) => { // Communicates with spotify to log in the server
     const pass = req.cookies.adminPass
     let passCorrect = false
