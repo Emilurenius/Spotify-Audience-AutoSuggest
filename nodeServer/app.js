@@ -110,6 +110,10 @@ app.get("/admin", (req, res) => { // Admin control panel
             }
         })
     }
+    else {
+        res.sendFile(path.join(__dirname, "/html/adminLogin.html"))
+        console.log("Login initiated")
+    }
 })
 
 app.get("/admin/generateCode", (req, res) => { // Generate new code for clients to connect with
