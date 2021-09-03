@@ -70,18 +70,23 @@ app.get("/", (req, res) => { // This address handles connecting clients to the s
     const connectCode = req.cookies.connectCode
     console.log(connectCode)
 
-    if (connectCode) {
-        codeData = loadJSON("/json/connectCode.json")
-        console.log(connectCode == codeData.code)
-        if (connectCode == codeData.code && codeData.expires < Date.now()+ 24 * 60 * 60 * 1000) {
-            res.sendFile(path.join(__dirname, "/html/index.html"))
+    try {
+        if (connectCode) {
+            codeData = loadJSON("/json/connectCode.json")
+            console.log(connectCode == codeData.code)
+            if (connectCode == codeData.code && codeData.expires < Date.now()+ 24 * 60 * 60 * 1000) {
+                res.sendFile(path.join(__dirname, "/html/index.html"))
+            }
+            else {
+                res.sendFile(path.join(__dirname, "/html/clientConnect.html"))
+            }
         }
         else {
+            console.log("No code data")
             res.sendFile(path.join(__dirname, "/html/clientConnect.html"))
         }
-    }
-    else {
-        console.log("No code data")
+    } catch (err) {
+        console.log(`An error occured: ${err.message}\nAttempting login`)
         res.sendFile(path.join(__dirname, "/html/clientConnect.html"))
     }
 })
